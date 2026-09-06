@@ -79,14 +79,20 @@ else:
     st.subheader(f"第 {st.session_state.current_index + 1} 問 / 全 {total_q} 問")
     st.write("表示されている画像に関連する単語を答えてね！")
 
-    # 画像を表示
-    cols = st.columns(len(current_q["images"]))
-    for idx, img_path in enumerate(current_q["images"]):
-        try:
-            image = Image.open(img_path)
-            cols[idx].image(image, use_container_width=True)
-        except Exception:
-            cols[idx].error("画像が見つかりません")
+    # 画像を表示（1行あたり最大3枚まで表示し、4枚目以降は自動で次の行へ）
+    images = current_q["images"]
+    IMAGES_PER_ROW = 3
+
+    for i in range(0, len(images), IMAGES_PER_ROW):
+        row_images = images[i : i + IMAGES_PER_ROW]
+        cols = st.columns(len(row_images))
+        
+        for col, img_path in zip(cols, row_images):
+            try:
+                image = Image.open(img_path)
+                col.image(image, use_container_width=True)
+            except Exception:
+                col.error("画像が見つかりません")
 
     st.write("---")
 
