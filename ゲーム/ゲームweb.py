@@ -90,37 +90,72 @@ quiz_data = [
 ]
 
 # セッション状態の初期化
+if "game_started" not in st.session_state:
+    st.session_state.game_started = False
 if "shuffled_data" not in st.session_state:
-    st.session_state.shuffled_data = random.sample(quiz_data, len(quiz_data))
+    st.session_state.shuffled_data = []
+if "current_index" not in st.session_state:
+    st.session_state.current_index = 0
+if "score" not in st.session_state:
+    st.session_state.score = 0
+if "is_finished" not in st.session_state:
+    st.session_state.is_finished = False
+if "answered" not in st.session_state:
+    st.session_state.answered = False
+if "last_result" not in st.session_state:
+    st.session_state.last_result = None
+
+# ゲーム開始処理を行う関数
+def start_game(num_questions=None):
+    if num_questions and num_questions < len(quiz_data):
+        # 指定数（10問など）をランダム抽出
+        st.session_state.shuffled_data = random.sample(quiz_data, num_questions)
+    else:
+        # 全問をシャッフル
+        st.session_state.shuffled_data = random.sample(quiz_data, len(quiz_data))
+    
     st.session_state.current_index = 0
     st.session_state.score = 0
     st.session_state.is_finished = False
-    st.session_state.answered = False  # 回答済みかどうかを管理
-    st.session_state.last_result = None # 直前の結果メッセージ
+    st.session_state.answered = False
+    st.session_state.game_started = True
 
 # --------------------------------------------------
 # 2. 画面表示の制御
 # --------------------------------------------------
-st.title("ポケモンでサークルメンバー連想クイズ")
+st.title("日本茶メンバーのポケモン連想クイズ")
 
-if st.session_state.is_finished:
-    # --- 終了画面 ---
-    st.balloons()
-    st.success("🎉 全問終了です！お疲れ様でした！")
-    st.write(f"### 最終スコア: **{st.session_state.score} / {len(quiz_data)}**")
+# --- A. スタート画面（モード選択） ---
+if not st.session_state.game_started:
+    st.write("モードを選んでゲームを始めてね！")
+    st.write(f"（登録されている問題数：**全 {len(quiz_data)} 問**）")
     
-    if st.button("もう一度遊ぶ"):
-        st.session_state.shuffled_data = random.sample(quiz_data, len(quiz_data))
-        st.session_state.current_index = 0
-        st.session_state.score = 0
-        st.session_state.is_finished = False
-        st.session_state.answered = False
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🎲 10問にチャレンジ！", type="primary", use_container_width=True):
+            start_game(num_questions=10)
+            st.rerun()
+            
+    with col2:
+        if st.button(f"🔥 全問挑戦！（{len(quiz_data)}問）", use_container_width=True):
+            start_game(num_questions=None)
+            st.rerun()
+
+# --- B. 終了画面 ---
+elif st.session_state.is_finished:
+    st.balloons()
+    st.success("🎉 お疲れ様でした！クイズ終了です！")
+    total_q = len(st.session_state.shuffled_data)
+    st.write(f"### 最終スコア: **{st.session_state.score} / {total_q}**")
+    
+    if st.button("タイトルに戻る"):
+        st.session_state.game_started = False
         st.rerun()
 
+# --- C. クイズ実行画面 ---
 else:
-    # --- クイズ実行画面 ---
     current_q = st.session_state.shuffled_data[st.session_state.current_index]
-    total_q = len(quiz_data)
+    total_q = len(st.session_state.shuffled_data)
     
     st.subheader(f"第 {st.session_state.current_index + 1} 問 / 全 {total_q} 問")
     st.write("表示されている画像に関連する単語を答えてね！")
@@ -158,10 +193,8 @@ else:
                 st.session_state.score += 1
                 st.session_state.last_result = ("success", "🎉 正解！")
             else:
-                # 不正解時に代表的な正解（リストの最初の1つ）を表示
                 st.session_state.last_result = ("error", f"❌ 不正解...（正解は「{answers[0]}」でした）")
             
-            # 回答済み状態にして画面更新
             st.session_state.answered = True
             st.rerun()
 
@@ -174,7 +207,6 @@ else:
             st.error(res_msg)
 
         if st.button("次の問題へ進む ➔"):
-            # 次の問題の準備
             st.session_state.answered = False
             if st.session_state.current_index + 1 < total_q:
                 st.session_state.current_index += 1
