@@ -5,40 +5,41 @@ import random
 # --------------------------------------------------
 # 1. データの準備と初期化
 # --------------------------------------------------
+# answer をリスト形式にすることで、複数の表記を正解判定できるようにしています
 quiz_data = [
     {
-        "images": ["アマージョ.png", "マスカーニャ.png","ビークイン.png"],
-        "answer": "すみれ",
+        "images": ["アマージョ.png", "マスカーニャ.png", "ビークイン.png"],
+        "answer": ["すみれ", "すみれさん","栄川さん"],
         "hint": "3年女子"
     },
     {
         "images": ["シャワーズ.png", "ラプラス.png"],
-        "answer": "あおい",
+        "answer": ["あおい", "あおちゃん","水野さん","水野","みずのさん"],
         "hint": "3年女子"
     },
     {
         "images": ["ヤバソチャ.png", "モトトカゲ.png", "ヤナップ.png"],
-        "answer": "くぼっち",
+        "answer": ["くぼっち", "窪田"],
         "hint": "3年男子"
     },
     {
         "images": ["ケッキング.png", "カビゴン.png", "マフィティフ.png", "ミツハニー.png"],
-        "answer": "りん",
+        "answer": ["りん", "りんちゃん","坂本さん"],
         "hint": "3年男子"
     },
     {
         "images": ["ブイゼル.png", "ワルビル.png"],
-        "answer": "にいちゃん",
+        "answer": ["にいちゃん", "にーちゃん", "ゆうき","ゆうきさん","新本"],
         "hint": "3年男子"
     },
     {
         "images": ["ガーディ(ヒスイの姿).png", "シュバルゴ.png"],
-        "answer": "こーへい",
+        "answer": ["こーへい", "こうへい"],
         "hint": "3年男子"
     },
     {
         "images": ["フカマル.png", "ゲコガシラ.png", "ウソッキー.png", "ゴーゴート.png", "ミツハニー.png"],
-        "answer": "さとっしー",
+        "answer": ["さとっしー", "小倉"],
         "hint": "3年男子"
     }
 ]
@@ -79,7 +80,7 @@ else:
     st.subheader(f"第 {st.session_state.current_index + 1} 問 / 全 {total_q} 問")
     st.write("表示されている画像に関連する単語を答えてね！")
 
-    # 画像を表示（1行あたり最大3枚まで表示し、4枚目以降は自動で次の行へ）
+    # 画像を表示（3枚ごとに改行）
     images = current_q["images"]
     IMAGES_PER_ROW = 3
 
@@ -101,12 +102,19 @@ else:
         user_answer = st.text_input("回答を入力してください：", key=f"ans_input_{st.session_state.current_index}")
         
         if st.button("回答する", type="primary"):
-            correct_answer = current_q["answer"]
-            if user_answer.strip() == correct_answer:
+            answers = current_q["answer"]
+            
+            # answer が文字列の場合はリストに変換（互換性確保）
+            if isinstance(answers, str):
+                answers = [answers]
+            
+            # 入力された文字がリストのいずれかと一致するか判定
+            if user_answer.strip() in answers:
                 st.session_state.score += 1
                 st.session_state.last_result = ("success", "🎉 正解！")
             else:
-                st.session_state.last_result = ("error", f"❌ 不正解...（正解は「{correct_answer}」でした）")
+                # 不正解時に代表的な正解（リストの最初の1つ）を表示
+                st.session_state.last_result = ("error", f"❌ 不正解...（正解は「{answers[0]}」でした）")
             
             # 回答済み状態にして画面更新
             st.session_state.answered = True
