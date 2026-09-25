@@ -143,10 +143,8 @@ if "last_result" not in st.session_state:
 # ゲーム開始処理を行う関数
 def start_game(num_questions=None):
     if num_questions and num_questions < len(quiz_data):
-        # 指定数（10問など）をランダム抽出
         st.session_state.shuffled_data = random.sample(quiz_data, num_questions)
     else:
-        # 全問をシャッフル
         st.session_state.shuffled_data = random.sample(quiz_data, len(quiz_data))
     
     st.session_state.current_index = 0
@@ -158,7 +156,7 @@ def start_game(num_questions=None):
 # --------------------------------------------------
 # 2. 画面表示の制御
 # --------------------------------------------------
-st.title("日本茶メンバーのポケモン連想クイズ")
+st.title("🖼️ 画像連想クイズ")
 
 # --- A. スタート画面（モード選択） ---
 if not st.session_state.game_started:
@@ -212,18 +210,22 @@ else:
 
     st.write("---")
 
-    # 【まだ回答していない場合】回答欄と回答ボタンを表示
+    # 【まだ回答していない場合】回答欄・ヒントボタン・回答ボタンを表示
     if not st.session_state.answered:
+        # ★ ヒント表示機能（折りたたみで表示）
+        hint_text = current_q.get("hint", "")
+        if hint_text:
+            with st.expander("💡 ヒントを見る"):
+                st.info(f"ヒント: {hint_text}")
+
         user_answer = st.text_input("回答を入力してください：", key=f"ans_input_{st.session_state.current_index}")
         
         if st.button("回答する", type="primary"):
             answers = current_q["answer"]
             
-            # answer が文字列の場合はリストに変換（互換性確保）
             if isinstance(answers, str):
                 answers = [answers]
             
-            # 入力された文字がリストのいずれかと一致するか判定
             if user_answer.strip() in answers:
                 st.session_state.score += 1
                 st.session_state.last_result = ("success", "🎉 正解！")
