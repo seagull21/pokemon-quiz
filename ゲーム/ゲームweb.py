@@ -193,7 +193,7 @@ else:
     st.subheader(f"第 {st.session_state.current_index + 1} 問 / 全 {total_q} 問")
     st.write("表示されている画像に関連する単語を答えてね！")
 
-    # 画像を表示（3枚ごとに改行）
+    # 画像を表示（正方形キャンバスにリサイズして大きさを統一）
     images = current_q["images"]
     IMAGES_PER_ROW = 3
 
@@ -204,7 +204,16 @@ else:
         for col, img_path in zip(cols, row_images):
             try:
                 image = Image.open(img_path)
-                col.image(image, use_container_width=True)
+                
+                # 300x300の正方形キャンバスを作成して中央配置
+                target_size = (300, 300)
+                image.thumbnail(target_size, Image.Resampling.LANCZOS)
+                canvas = Image.new("RGBA", target_size, (255, 255, 255, 0))
+                paste_x = (target_size[0] - image.width) // 2
+                paste_y = (target_size[1] - image.height) // 2
+                canvas.paste(image, (paste_x, paste_y), image if image.mode == 'RGBA' else None)
+                
+                col.image(canvas, use_container_width=True)
             except Exception:
                 col.error("画像が見つかりません")
 
@@ -212,7 +221,6 @@ else:
 
     # 【まだ回答していない場合】回答欄・ヒントボタン・回答ボタンを表示
     if not st.session_state.answered:
-        # ★ ヒント表示機能（折りたたみで表示）
         hint_text = current_q.get("hint", "")
         if hint_text:
             with st.expander("💡 ヒントを見る"):
