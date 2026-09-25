@@ -192,16 +192,20 @@ else:
     
     st.subheader(f"第 {st.session_state.current_index + 1} 問 / 全 {total_q} 問")
     st.write("表示されている画像に関連する単語を答えてね！")
-
-    # 画像を表示（正方形キャンバスにリサイズして大きさを統一）
+    
+    # 画像を表示（常に3列の枠を確保して大きさを完全に統一）
     images = current_q["images"]
     IMAGES_PER_ROW = 3
 
     for i in range(0, len(images), IMAGES_PER_ROW):
         row_images = images[i : i + IMAGES_PER_ROW]
-        cols = st.columns(len(row_images))
         
-        for col, img_path in zip(cols, row_images):
+        # ★ここがポイント！常に3列分のカラム（枠）を作る
+        cols = st.columns(IMAGES_PER_ROW)
+        
+        # 3列のうち、画像がある分だけ順番に表示する
+        for idx, img_path in enumerate(row_images):
+            col = cols[idx]
             try:
                 image = Image.open(img_path)
                 
