@@ -192,18 +192,15 @@ else:
     
     st.subheader(f"第 {st.session_state.current_index + 1} 問 / 全 {total_q} 問")
     st.write("表示されている画像に関連する単語を答えてね！")
-    
-    # 画像を表示（常に3列の枠を確保して大きさを完全に統一）
+
+    # 画像を表示（常に3列固定にして大きさを完全に統一）
     images = current_q["images"]
     IMAGES_PER_ROW = 3
 
     for i in range(0, len(images), IMAGES_PER_ROW):
         row_images = images[i : i + IMAGES_PER_ROW]
-        
-        # ★ここがポイント！常に3列分のカラム（枠）を作る
         cols = st.columns(IMAGES_PER_ROW)
         
-        # 3列のうち、画像がある分だけ順番に表示する
         for idx, img_path in enumerate(row_images):
             col = cols[idx]
             try:
@@ -230,7 +227,12 @@ else:
             with st.expander("💡 ヒントを見る"):
                 st.info(f"ヒント: {hint_text}")
 
-        user_answer = st.text_input("回答を入力してください：", key=f"ans_input_{st.session_state.current_index}")
+        # autocomplete="off" で過去の入力履歴を出さないように設定
+        user_answer = st.text_input(
+            "回答を入力してください：", 
+            key=f"ans_input_{st.session_state.current_index}",
+            autocomplete="off"
+        )
         
         if st.button("回答する", type="primary"):
             answers = current_q["answer"]
